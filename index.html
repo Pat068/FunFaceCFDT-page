@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="author" content="Patrick LEBRET (pour la section CFDT IBM)" />
+    <!-- Développeur : Patrick LEBRET (pour la section CFDT IBM) -->
+    <title>FunFaceCFDT — Web</title>
+    <script type="module" crossorigin src="./assets/index-CJR0vLSw.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CITV6Qbj.css">
+  </head>
+  <body>
+    <div id="app" class="app-root">
+      <!-- Offscreen video source for MediaPipe & Canvas (avoid display:none for Firefox) -->
+      <video id="camera-video" class="camera-video-hidden" playsinline muted autoplay></video>
+
+      <!-- Main AR + Camera + QR Canvas -->
+      <canvas id="ar-canvas" class="ar-canvas"></canvas>
+
+      <!-- Top Glass Toolbar -->
+      <header class="top-bar">
+        <button
+          id="btn-qr-panel"
+          class="brand-pill"
+          type="button"
+          title="Configurer le QR Code (Web)"
+          aria-label="Menu FunFaceCFDT — Configurer le QR Code"
+        >
+          <span class="brand-dot" id="status-dot"></span>
+          <span class="brand-title">FunFaceCFDT</span>
+          <span class="status-text" id="status-text">Initialisation…</span>
+        </button>
+
+        <div class="top-actions">
+          <button
+            id="btn-toggle-ui"
+            class="icon-btn"
+            type="button"
+            title="Masquer / afficher les contrôles du bas"
+            aria-label="Masquer les contrôles du bas"
+          >
+            <span class="btn-emoji">👁️</span>
+          </button>
+
+          <button
+            id="btn-about"
+            class="icon-btn"
+            type="button"
+            title="À propos"
+            aria-label="À propos"
+          >
+            <span class="btn-emoji">ℹ️</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Web-only QR Code Configuration Panel -->
+      <aside id="qr-panel" class="qr-panel hidden" aria-label="Configuration QR Code">
+        <div class="qr-panel-header">
+          <h2>QR Code (bas-droite)</h2>
+          <button id="btn-close-qr" class="close-btn" type="button" aria-label="Fermer">✕</button>
+        </div>
+
+        <label class="toggle-row">
+          <span>Afficher le QR Code</span>
+          <input id="qr-enabled" type="checkbox" />
+        </label>
+
+        <div class="field-group">
+          <span class="field-label">Taille</span>
+          <div class="size-pills" id="qr-size-pills">
+            <button type="button" class="size-pill" data-size="small">Petit</button>
+            <button type="button" class="size-pill active" data-size="medium">Moyen</button>
+            <button type="button" class="size-pill" data-size="large">Grand</button>
+          </div>
+        </div>
+
+        <div id="qr-lock-box" class="qr-lock-box">
+          <p class="qr-lock-hint">🔒 Mot de passe requis pour modifier le QR Code ou la légende.</p>
+          <form id="qr-unlock-form" class="qr-unlock-form">
+            <input
+              id="qr-password"
+              type="password"
+              placeholder="Mot de passe"
+              autocomplete="current-password"
+              required
+            />
+            <button type="submit" class="qr-unlock-btn">Déverrouiller</button>
+          </form>
+          <p id="qr-auth-error" class="qr-auth-error hidden" role="alert">
+            Mot de passe incorrect.
+          </p>
+        </div>
+
+        <div id="qr-controls" class="qr-controls hidden">
+          <div class="field-group">
+            <label for="qr-text">URL ou texte à encoder</label>
+            <input
+              id="qr-text"
+              type="text"
+              placeholder="https://www.cfdt-ibm.org/enquete-pip-2026/"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="field-group">
+            <label for="qr-label">Légende (optionnel)</label>
+            <input
+              id="qr-label"
+              type="text"
+              placeholder="Enquête PIP 2026"
+              maxlength="28"
+              autocomplete="off"
+            />
+          </div>
+
+          <button id="btn-lock-qr" type="button" class="qr-lock-btn">
+            🔒 Verrouiller le contenu
+          </button>
+        </div>
+      </aside>
+
+      <!-- Bottom Filter Controls -->
+      <footer class="bottom-bar" id="bottom-bar">
+        <div id="filter-strip" class="filter-strip" role="listbox" aria-label="Filtres AR"></div>
+      </footer>
+
+      <!-- Camera Permission / Error Overlay -->
+      <div id="camera-overlay" class="overlay hidden">
+        <div class="overlay-card">
+          <div class="overlay-icon">📷</div>
+          <h2 id="overlay-title">Accès à la caméra</h2>
+          <p id="overlay-message">Autorisez la caméra pour utiliser FunFaceCFDT.</p>
+          <button id="btn-retry-cam" class="primary-btn" type="button">
+            Activer la caméra
+          </button>
+        </div>
+      </div>
+
+      <!-- About Modal -->
+      <div id="about-modal" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="about-title">
+        <div class="overlay-card about-card">
+          <h2 id="about-title">🍊 FunFaceCFDT</h2>
+          <p class="about-subtitle">Filtres AR 3D &amp; Expressions en temps réel</p>
+
+          <div class="about-dev-box">
+            <span class="about-dev-label">DÉVELOPPEUR</span>
+            <strong class="about-dev-name">Patrick LEBRET</strong>
+            <span class="about-dev-sub">(pour la section CFDT IBM)</span>
+          </div>
+
+          <div class="about-libs">
+            <h3>Bibliothèques utilisées :</h3>
+            <div class="about-lib-item">
+              <strong>MediaPipe Face Landmarker</strong>
+              <span>Détection faciale temps réel, points de repère 3D et analyse des mimiques</span>
+            </div>
+            <div class="about-lib-item">
+              <strong>WebRTC getUserMedia &amp; Canvas 2D</strong>
+              <span>Flux caméra et rendu procédural 3D des filtres</span>
+            </div>
+            <div class="about-lib-item">
+              <strong>QRCode</strong>
+              <span>Génération locale et incrustation du QR Code en bas à droite</span>
+            </div>
+          </div>
+
+          <button id="btn-close-about" class="primary-btn" type="button">Fermer</button>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
